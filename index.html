@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special New Year Wish For You</title>
+    <style>
+        /* CSS - Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+            text-align: center;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100vh;
+            background: rgba(0,0,0,0.4);
+        }
+
+        h1 {
+            font-size: 3rem;
+            text-transform: uppercase;
+            color: #FFD700;
+            text-shadow: 0 0 10px #FFD700, 0 0 20px #ff00de;
+            animation: glow 1.5s ease-in-out infinite alternate;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: #00ffff;
+            text-shadow: 0 0 5px #00ffff;
+            margin-top: 0;
+        }
+
+        .name-display {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #ff0055;
+            font-family: 'Brush Script MT', cursive;
+            text-shadow: 2px 2px 0 #fff, 0 0 20px #ff0055;
+            animation: bounce 2s infinite;
+        }
+
+        .input-box {
+            margin-top: 30px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+            text-align: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            background: #ff0055;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 0 10px #ff0055;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.1);
+        }
+
+        /* Animations */
+        @keyframes glow {
+            from { text-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700; }
+            to { text-shadow: 0 0 20px #FFD700, 0 0 30px #ff00de; }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-20px);}
+            60% {transform: translateY(-10px);}
+        }
+
+        /* Fireworks Canvas */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="container">
+        <h2>Wishing You A Very</h2>
+        <h1>Happy New Year 2025</h1>
+        
+        <div id="greetingArea">
+            <p style="font-size: 1.5rem;">To:</p>
+            <div class="name-display" id="displayName">My Friend</div>
+        </div>
+
+        <div class="input-box">
+            <input type="text" id="nameInput" placeholder="Enter Your Name">
+            <button onclick="generateWish()">Go</button>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript - Logic
+        
+        // 1. Handle URL Parameters (to show name from link)
+        const urlParams = new URLSearchParams(window.location.search);
+        const nameFromUrl = urlParams.get('n');
+        
+        if(nameFromUrl) {
+            document.getElementById('displayName').innerText = decodeURIComponent(nameFromUrl);
+            document.getElementById('nameInput').value = decodeURIComponent(nameFromUrl);
+        }
+
+        // 2. Generate New Wish Function
+        function generateWish() {
+            const name = document.getElementById('nameInput').value;
+            if(name.trim() !== "") {
+                // Update the text
+                document.getElementById('displayName').innerText = name;
+                // Update URL without reloading (optional)
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?n=' + encodeURIComponent(name);
+                window.history.pushState({path:newUrl},'',newUrl);
+                alert("Link Generated! Copy the URL from the browser address bar to share.");
+            } else {
+                alert("Please enter a name first!");
+            }
+        }
+
+        // 3. Simple Fireworks Logic
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particles = [];
+
+        function Particle(x, y, color) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+            this.velocity = { x: (Math.random() - 0.5) * 8, y: (Math.random() - 0.5) * 8 };
+            this.alpha = 1;
+            this.life = 100;
+        }
+
+        Particle.prototype.draw = function() {
+            ctx.save();
+            ctx.globalAlpha = this.alpha;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 3, 0, Math.PI * 2, false);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+            ctx.restore();
+        };
+
+        Particle.prototype.update = function() {
+            this.x += this.velocity.x;
+            this.y += this.velocity.y;
+            this.alpha -= 0.01;
+            this.life--;
+        };
+
+        function createFirework(x, y) {
+            const colors = ['#ff0055', '#FFD700', '#00ffff', '#00ff00'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            for (let i = 0; i < 30; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; // Trail effect
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach((particle, index) => {
+                if (particle.life > 0) {
+                    particle.update();
+                    particle.draw();
+                } else {
+                    particles.splice(index, 1);
+                }
+            });
+
+            // Random auto fireworks
+            if(Math.random() < 0.05) {
+                createFirework(Math.random() * canvas.width, Math.random() * canvas.height);
+            }
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Start animation
+        animate();
+        
+        // Add click listener for fireworks
+        window.addEventListener('click', (e) => {
+            createFirework(e.clientX, e.clientY);
+        });
+    </script>
+</body>
+</html>
